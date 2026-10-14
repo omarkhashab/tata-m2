@@ -1,0 +1,46 @@
+id,source,problem,detected_by,count,planned_decision
+T1,tenants.csv,tn_003 'NILEBANK Ltd.' and tn_004 'nilebank' are the same company,normalised name + identical security_contact/onboarded_at,2,entity-resolve tn_004 -> tn_003 (tn_004 has no activity)
+T2,tenants.csv,region 'eu-central-9' is not in the region enum,enum check,1,"set region null, quality flag INVALID_ENUM_REGION"
+T3,tenants.csv,security_contact missing,null check,1,keep null (nullable attribute)
+T4,tenants.csv,inactive tenant tn_006 still has historical traffic,join to activity,15043,keep: documented as legitimate history
+AG1,agents.csv,ag_007 'v2.3.1' duplicates 2.3.1 with a different agent_name and autonomy_level,"strip 'v' prefix, then duplicate natural key",1,"drop the v-prefixed row, keep canonical 2.3.1 attributes; record in entity_resolution"
+AG2,agents.csv,ag_019 points to sandbox profile 'sp_missing_profile' that does not exist,FK check against sandbox_policies,1,keep agent; policy_version_applied null and quality flag NO_POLICY_PROFILE for its records
+TL1,tools.csv,tl_vector_search 2.0.1 appears twice (identical rows),duplicated() on all columns,1,"deduplicate on (tool_id, tool_version)"
+TL2,tools.csv,tl_web_fetch is named web_fetch / http_get / webfetch across versions,nunique(tool_name) per tool_id,3,build alias map tool_name -> tool_id for entity resolution
+TL3,tools.csv,tl_code_exec category is code_exec in 0.9.1 but shell in 0.9.0,nunique(tool_category) per tool_id,1,"keep per-version category, quality flag; document"
+P1,model_pricing.csv,mdl_kst_nano_1 has empty input/output prices,null check,1,"cost_usd null for nano turns, quality flag PRICE_MISSING; declared in the cost policy"
+P2,model_pricing.csv,effective_to is never filled,null check,5,derive effective_to = next effective_from of the same model (open-ended for the last)
+P3,model_pricing.csv,nano turns occur before nano's first effective_from (2026-02-01),first turn per model vs first effective_from,451,no price effective at turn time -> cost null + flag
+PO1,sandbox_policies.json,sp_research_std v2 (to 2026-02-01) and v3 (from 2026-01-25) overlap,pairwise interval-overlap check per profile,1,"resolve with evidence from the audit log (finding PO1b, section 9.1)"
+PO2,sandbox_policies.json,sp_ops_elevated v4 has no network block (= no egress allowed),key-presence check on raw JSON,1,keep has_network_block=False; every egress under v4 is a violation
+PO3,sandbox_policies.json,egress allowlists contain wildcards,regex on exploded allowlist,7,"fnmatch-style host matching, never =="
+AC1,agent_activity.parquet,"event_time stored in 4+ formats (ISO ms, epoch ms, dd/mm/yyyy, ISO without ms)",value shapes (digits->9) of event_time,15134,parse every format to UTC; non-ISO formats get quality flag NONSTANDARD_TIMESTAMP_FORMAT
+AC2,agent_activity.parquet,epoch-ms and dd/mm/yyyy event_times are UTC,lateness vs ingest_time ~1 s for every format (no whole-hour offset); day field > 12 proves day-first,14421,"interpret as UTC, epoch unit = ms, day-first"
+AC3,agent_activity.parquet,"unparseable event_time ('not-a-time', impossible date 2026-02-30)",regex classification + strict parse,713,reject MALFORMED_TIMESTAMP
+AC4,agent_activity.parquet,"late events (ingest - event > 10 s), up to ~55 min",lateness distribution,21256,accept + quality flag LATE (batch has no watermark; Kafka 60 s watermark is M2)
+AC4b,agent_activity.parquet,tool.call finished_at is earlier than its start (event_time),finished_at - event_time < 0 on parsed rows,1618,keep row; quality flag FINISHED_BEFORE_START (finished_at is not used by any M1 metric)
+AC5,agent_activity.parquet,"duplicate event_id (identical payload, different ingest_time)",event_id.duplicated(),7427,keep earliest ingest_time; other copies rejected DUPLICATE_EVENT_ID
+AC6,agent_activity.parquet,unknown agents ag_999 / ag_321 (version 9.9.9),FK check vs agents.csv,1332,reject UNKNOWN_AGENT_ID
+AC7,agent_activity.parquet,unknown tenant tn_777 inside otherwise valid sessions,FK check vs tenants.csv,736,reject UNKNOWN_TENANT_ID
+AC8,agent_activity.parquet,"release_version with 'v' prefix (v2.3.1, v2.2.0)","FK check fails raw, passes after stripping 'v'",2351,normalise (strip v) + quality flag VERSION_PREFIX_STRIPPED
+AC9,agent_activity.parquet,"tool.call tool_id holds a tool name (http_get, webfetch)","FK check vs tool_id, match vs tool_name",980,resolve via alias map to tl_web_fetch + quality flag TOOL_ALIAS_RESOLVED
+AC10,agent_activity.parquet,"event types outside the enum (agent.telepathy, llm.thought)",enum check on event_type,302,reject INVALID_EVENT_TYPE
+AC11,agent_activity.parquet,status null on llm.turn / tool.call,required-field null check,738,reject MISSING_REQUIRED_FIELD
+AC12,agent_activity.parquet,status 'succeeded' is not in the tool-call status enum,crosstab event_type x status,160,map to 'success' + quality flag STATUS_NORMALISED
+AC13,agent_activity.parquet,"negative latency_ms / input_tokens, retry_number = -1",min/negative counts per numeric column,1562,reject INVALID_NUMERIC_RANGE
+AC14,agent_activity.parquet,llm.turn with null output_tokens,required-field null check,4449,keep row; declared missing-token policy = null-excluded; effect shown on one metric
+AC15,agent_activity.parquet,sessions with no session.start (single orphan rows),count of session.start per session,200,reject ORPHAN_EVENT
+AC16,agent_activity.parquet,sessions without a terminal event / with sequence gaps,terminal count and max(sequence_number) vs row count per session,2248 / 700,"not rejected; excluded from duration, counted in trace completeness"
+AC17,agent_activity.parquet,terminal latency_ms disagrees with derived duration,abs(latency_ms/1000 - (terminal - start)) > 1 s,1942,use derived duration only; report disagreement count
+NF1,network_flows.csv,flows referencing a session_id absent from activity,FK check vs activity session_id,84,reject ORPHAN_EVENT
+NF2,network_flows.csv,dst_host empty,"null check, by protocol",3514,"fill from dst_ip->host map where known (flag DST_HOST_FILLED), else keep dst_ip as target"
+NF3,network_flows.csv,geo_country empty,null check,2088,keep null (documented nullable)
+NF4,network_flows.csv,flow_time is genuine UTC,"median flow_time - tool.call start = +0.34 s, no hour offset",37602,use as-is; flows are the clock anchor for the audit-log offset
+PO1b,sandbox_policies.json,which version applies inside the sp_research_std v2/v3 overlap,audit-log policy_version for research sessions between 2026-01-25 and 2026-02-01 (UTC),346,the sandbox itself applied ['3']: newer version wins inside an overlap
+AU1,sandbox_audit.log,truncated lines that do not match the syslog regex,anchored regex; length of failing lines,524,reject UNPARSEABLE_RECORD with raw line + line number
+AU2,sandbox_audit.log,policy_version is '-' (null marker),count of '-' per field,2446,"null; derive policy_version_applied by validity-window join, flag"
+AU3,sandbox_audit.log,exact duplicate lines,raw_line.duplicated(),4,"keep first, later copies rejected DUPLICATE_EVENT_ID"
+AU4,sandbox_audit.log,"log_time is host-local with no year and no offset; all hosts are UTC+2, regardless of the eu/us/me hostname","socket_connect paired with UTC flows: per-host median offset 1.97-2.03 h, no DST jump; tool-call pairing covers all 42 hosts and agrees with flows within 0.4 s",55465,utc = local(2026) - measured per-host offset (UTC+2 + skew up to ~90 s); fallback -2 h for unseen hosts
+SI1,siem_alerts.json,"detected_at uses a different UTC offset per source_system (+02:00, +03:00, -05:00)",offset suffix x source_system crosstab; deltas to flows ~0-45 s after UTC conversion (offsets are honest),3754,convert with the stated offset to UTC
+SI2,siem_alerts.json,cloud-ids '*_external' alerts come from source IPs that never appear in flows,"source_ip membership in flows.src_ip, by rule",1251,leave unmatched (activity outside the platform); never forced
+SI3,siem_alerts.json,no session_id; correlation needs a tolerance N,N-sensitivity table: counts plateau from N = 60 s,3754,"rule src_ip=source_ip, dst_ip=destination.host, port, |dt| <= 60 s; report matched/ambiguous/unmatched"
