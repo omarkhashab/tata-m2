@@ -1,0 +1,2 @@
+# Keep raw data byte-for-byte: no CRLF conversion, so source line numbers stay valid
+M1/data/raw/** -text
