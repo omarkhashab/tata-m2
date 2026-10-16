@@ -1,0 +1,17 @@
+metric                                                   , value    , numerator, denominator, unit
+1 terminal sessions (volume)                             , 97952.0  ,          ,            , sessions
+1 success rate                                           ,    92.506,     90611,       97952, %
+1 error rate                                             ,     7.494,      7341,       97952, %
+2 p50 session duration                                   ,    17.646,          ,       97952, s
+2 p95 session duration                                   ,    39.56 ,          ,       97952, s
+2 cross-check: terminal latency_ms disagrees > 1 s       ,     1.983,      1942,       97952, %
+8 trace completeness                                     ,    95.881,     93917,       97952, %
+8 correlation coverage (alert -> session)                ,    64.864,      2435,        3754, %
+"8 correlation coverage, strict (single-flow match only)",    64.172,      2409,        3754, %
+"8 correlation coverage, on-platform alerts only"        ,    97.283,      2435,        2503, %
+9 rejected rate: agent_activity.parquet                  ,     1.384,     12977,      937752, %
+9 rejected rate: network_flows.csv                       ,     0.198,        84,       42392, %
+9 rejected rate: sandbox_audit.log                       ,     0.287,       528,      184005, %
+9 rejected rate: siem_alerts.json                        ,     0.0  ,         0,        3754, %
+9 rejected rate: all four sources                        ,     1.164,     13589,     1167903, %
+9 late-event rate (lateness > 10 s)                      ,     1.499,     13865,      924775, %
