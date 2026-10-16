@@ -315,6 +315,56 @@ INVALID_EVENT_TYPE 302 · ORPHAN_EVENT 284.
 
 ## 6. Metrics
 
-The M1 metrics (1, 2, 8 and 9) and the policy of each (denominator, population filter, late-event policy, null policy)
-are in `output/metrics/m1_metrics.csv` and `output/metrics/m1_metric_policies.csv`, produced by `kestrel_m1/metrics.py`
-and explained in `notebooks/02_metrics.ipynb`.
+Appendix A requires the denominator, population filter, late-event policy and null policy of every metric. They
+are stated below. The same text is the `POLICIES` table in `kestrel_m1/metrics.py`, which also writes it to
+`output/metrics/m1_metric_policies.csv`. The values are in `output/metrics/m1_metrics.csv`, and
+`notebooks/02_metrics.ipynb` shows how each one is computed.
+
+### 6.1 Metric 1: session volume / success / error rate
+
+* **Denominator:** distinct session_id with an accepted session.end or session.error row
+* **Population filter:** accepted activity rows (after dedup and rejects). Every terminal session has an accepted session.start because orphans are rejected. Sessions with no terminal row are excluded.
+* **Late-event policy:** late rows are accepted and only flagged (the batch has no watermark), so a late terminal row still makes its session terminal
+* **Null policy:** none possible: event_type, session_id and event_time are required fields, and rows missing them are rejected
+
+### 6.2 Metric 2: p50 / p95 session duration
+
+* **Denominator:** terminal sessions (same population as metric 1)
+* **Population filter:** duration = terminal event_time_utc - session.start event_time_utc; pandas Series.quantile with linear interpolation between closest ranks
+* **Late-event policy:** included. Lateness concerns ingest_time, and the duration uses event_time only
+* **Null policy:** a session without an accepted start would have no duration and be excluded; the curated data has none. latency_ms is never used as the duration, only as a cross-check (disagreement > 1 s reported)
+
+### 6.3 Metric 8a: trace completeness
+
+* **Denominator:** terminal sessions (same population as metric 1)
+* **Population filter:** complete = at least one accepted llm.turn, and the accepted sequence_numbers are exactly 1..max (no gap, no repeat). A row rejected for any reason except DUPLICATE_EVENT_ID (which leaves one accepted copy) leaves a gap, so the session counts as incomplete.
+* **Late-event policy:** late rows are accepted, so they fill their sequence slot
+* **Null policy:** sequence_number is required; rows without it are rejected, which leaves a gap
+
+### 6.4 Metric 8b: correlation coverage
+
+* **Denominator:** all accepted SIEM alerts
+* **Population filter:** covered = the alert is linked to exactly one session at N = 60 s: matched (one candidate flow) plus ambiguous alerts whose candidate flows all belong to one session. Ambiguous alerts spanning several sessions, and unmatched alerts, are not covered. Strict (matched only) and on-platform variants are reported next to it.
+* **Late-event policy:** not applicable: alerts and flows carry no ingest_time; |delta t| <= N is the only time rule
+* **Null policy:** an alert without a session is not covered; it is never force-matched
+
+### 6.5 Metric 9a: rejected-record rate
+
+* **Denominator:** received records per source = accepted + rejected (every received record lands in exactly one of the two; the pipeline asserts this)
+* **Population filter:** the four event sources. Headline = agent_activity.parquet; the overall rate is pooled over all four. Reference files are cleaned by dedup and repair, not rejected, so they are not counted.
+* **Late-event policy:** late rows are not rejected in batch (no LATE_BEYOND_WATERMARK), so lateness does not raise this rate
+* **Null policy:** a null in a required field is a reject (MISSING_REQUIRED_FIELD) and is counted
+
+### 6.6 Metric 9b: late-event rate
+
+* **Denominator:** accepted agent_activity rows
+* **Population filter:** late = ingest_time_utc - event_time_utc > 10 s. Only agent_activity has an ingest_time, so the other sources have no lateness. Late duplicate copies were already removed by dedup (the earliest ingest is kept) and are not counted.
+* **Late-event policy:** this metric is the late policy's measurement: late rows are kept and flagged LATE
+* **Null policy:** none possible: both timestamps are required and a malformed one is a reject
+
+### 6.7 Missing token counts
+
+* **Denominator:** llm.turn rows
+* **Population filter:** turns whose output_tokens is null
+* **Late-event policy:** -
+* **Null policy:** null-excluded: the count stays null, cost_usd is null and both are left out of sums and averages, never imputed as 0 (effect shown by missing_token_effect)
