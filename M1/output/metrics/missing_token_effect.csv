@@ -1,8 +1,8 @@
-quantity                               , null_excluded (declared), zero_imputed, difference_pct
-llm.turn rows                          ,               407462.0  ,   407462.0  , 0.0
-turns with output_tokens               ,               403364.0  ,   407462.0  , 1.016
-mean output_tokens per turn            ,                  239.8  ,      237.388, -1.006
-total output_tokens                    ,             96726648.0  , 96726648.0  , 0.0
-turns with a cost                      ,               374978.0  ,   378799.0  , 1.019
-"estimated LLM cost, USD"              ,                 4055.11 ,     4087.31 , 0.794
-"mean cost per 1,000 costed turns, USD",                   10.814,       10.79 , -0.222
+quantity,null_excluded (declared),zero_imputed,difference_pct
+llm.turn rows,407462.0,407462.0,0.0
+turns with output_tokens,403364.0,407462.0,1.016
+mean output_tokens per turn,239.8,237.388,-1.006
+total output_tokens,96726648.0,96726648.0,0.0
+turns with a cost,374978.0,378799.0,1.019
+"estimated LLM cost, USD",4055.11,4087.31,0.794
+"mean cost per 1,000 costed turns, USD",10.814,10.79,-0.222
