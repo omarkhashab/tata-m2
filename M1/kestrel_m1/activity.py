@@ -171,7 +171,7 @@ def judge(df: pd.DataFrame, ref: Reference, watermark_s: float | None = None) ->
 
 def _quality_flags(df: pd.DataFrame) -> pd.Series:
     f = pd.Series("", index=df.index)
-    f = add_flag(f, df.event_time_format.isin(["epoch_ms", "epoch_s", "dmy_hms"]), "NONSTANDARD_TIMESTAMP_FORMAT")
+    f = add_flag(f, df.event_time_format.isin(["epoch_ms", "dmy_hms"]), "NONSTANDARD_TIMESTAMP_FORMAT")
     f = add_flag(f, df.release_version != df.release_version_norm, "VERSION_PREFIX_STRIPPED")
     f = add_flag(f, df.tenant_id != df.tenant_id_resolved, "TENANT_ALIAS_RESOLVED")
     f = add_flag(f, df.tool_alias_resolved, "TOOL_ALIAS_RESOLVED")

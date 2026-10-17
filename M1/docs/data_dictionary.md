@@ -43,7 +43,7 @@ sources carry at most millisecond precision.
 | activity `event_time` | UTC in four string formats: ISO with ms, ISO without ms, epoch **milliseconds** (13 digits), `dd/mm/yyyy HH:MM:SS` | for every format, `ingest_time − event_time` is about 1 s with no whole-hour offset, so all are UTC. A day field > 12 in slash dates proves day-first. 13-digit epochs land in the pack window only as ms. | parse each format as UTC; non-ISO rows flagged `NONSTANDARD_TIMESTAMP_FORMAT`; unparseable values rejected `MALFORMED_TIMESTAMP` |
 | flows `flow_time` | genuine UTC | a flow trails its causing `tool.call` by a median +0.34 s, with no hour offset | as-is; flows are the clock anchor for the audit log |
 | audit `log_time` (`Mon DD HH:MM:SS`) | host-local **UTC+2 on every host**, no DST, no year, plus a per-host skew | pairing `socket_connect` lines with UTC flows (same session and target) gives a per-host median offset of 1.97 to 2.03 h, whatever region the hostname names. Pairing every decision with the accepted tool call that caused it covers all 42 hosts and agrees with the flow pairing within 0.4 s. The `Apr` lines are the +2 h spill-over of 31 March evening. | year = 2026; `utc = local − measured per-host offset` (UTC+2 plus a skew of −90 to +87 s, re-measured on every run, table `audit_host_offsets`); a host with no pair falls back to exactly UTC+2 (flag `CLOCK_OFFSET_FALLBACK_UTC_PLUS_2`, not needed in this pack) |
-| SIEM `detected_at` | ISO-8601 with an offset that differs per `source_system`: corp-siem `+02:00`, egress-proxy `+03:00`, cloud-ids `−05:00` | after conversion, every system's alerts trail their flows by 0 to 45 s, so the offsets are honest | convert with the stated offset; the original string is kept in `detected_at_raw` and the offset in `utc_offset` |
+| SIEM `detected_at` | ISO-8601 with an offset that differs per `source_system`: corp-siem `+02:00`, egress-proxy `+03:00`, cloud-ids `−05:00` | after conversion, 97% of corp-siem and egress-proxy alerts trail their flow by 0 to 45 s (the other 67 are delayed detections, up to 393 s), so those offsets are honest. cloud-ids alerts are off-platform and have no flow to check against: their stated offset is applied as written | convert with the stated offset; the original string is kept in `detected_at_raw` and the offset in `utc_offset` |
 | reference dates (`launch_date`, `valid_from`, `effective_from`, ...) | dates or ISO strings | — | midnight UTC |
 
 After correction, audit lines line up with their flows to within −0.68 s … +0.39 s (p01 to p99).
@@ -177,9 +177,12 @@ alert.destination.host = flow.dst_ip      and   alert.destination.port = flow.ds
 |alert.detected_at_utc − flow.flow_time_utc| ≤ N,   N = 60 s
 ```
 
-* **Why N = 60 s:** matches grow until 45 s, the longest detection lag observed, and the counts are **identical for
-  every N from 45 s to 120 s**. 60 s sits inside that plateau with a margin. Larger N only adds alerts whose nearest
-  flow is 155 to 393 s away; at 3,600 s ambiguity doubles. Full table: `correlation_sensitivity`.
+* **Why N = 60 s:** matches grow until 45 s, the detection lag of 97% of on-platform alerts, and the counts are
+  **identical for every N from 45 s to 120 s**. 60 s sits inside that plateau with a margin. 67 more on-platform
+  alerts have a single key-matching flow 155 to 393 s earlier: **delayed detections, not coincidences** (none of the
+  2,436 alerts matched within 60 s has another key-matching flow 60 to 400 s away). They would match with no new
+  ambiguity at N = 394 to 500 s (2,476 / 27 / 1,251, coverage 66.649%). We keep the tighter window and report them
+  as unmatched. At 3,600 s ambiguity doubles. Full table: `correlation_sensitivity`.
 * **Outcome per alert:** `matched` (exactly one candidate flow), `ambiguous` (two or more), or `unmatched` (none).
   Result: **2,409 matched / 27 ambiguous / 1,318 unmatched**.
 * **Session of an alert:** the matched flow's session. For an ambiguous alert, the session is recorded only when every

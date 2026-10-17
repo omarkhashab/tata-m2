@@ -98,11 +98,16 @@ def clean_tenants(raw: pd.DataFrame) -> tuple[pd.DataFrame, dict, list[dict]]:
                  .str.replace(r"\b(ltd|inc|llc|plc)\b\.?", "", regex=True)
                  .str.replace(r"[^a-z0-9]", "", regex=True))
     contact_key = df.security_contact.fillna("") + "|" + df.onboarded_at.fillna("")
-    # union of the two matching rules: group ids that share either key
+    # union of the two matching rules: group ids that share either key, repeated until
+    # stable so that a chain (A~B by contact, B~C by name) ends up in one group
     group = pd.Series(range(len(df)), index=df.index)
-    for key in (name_norm, contact_key.where(df.security_contact.notna())):
-        for _, idx in df.groupby(key.fillna("__none__" + df.tenant_id)).groups.items():
-            group[idx] = group[idx].min()
+    keys = [k.fillna("__none__" + df.tenant_id) for k in (name_norm, contact_key.where(df.security_contact.notna()))]
+    while True:
+        before = group.copy()
+        for key in keys:
+            group = group.groupby(key).transform("min")
+        if group.equals(before):
+            break
     canonical = df.groupby(group).tenant_id.transform("min")
     alias = {t: c for t, c in zip(df.tenant_id, canonical) if t != c}
 

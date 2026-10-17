@@ -8,11 +8,15 @@ by what both sides did see (Dataset Description 3.8):
     |alert.detected_at_utc - flow.flow_time_utc| <= N
 
 N = 60 s (``DEFAULT_N_S``). Justification (``sensitivity``): matches grow until 45 s,
-the largest detection lag of any SIEM (matched alerts trail their flow by 0-45 s), and
-the counts are identical for every N from 45 s to 120 s. 60 s sits inside that
-plateau with a margin. A larger N only adds alerts whose nearest flow is 155-393 s
-away (300 s adds 44, 600 s adds 66), which is 3-9 times any real detection lag, and
-at 3600 s ambiguity doubles: coincidence, not correlation.
+the detection lag of 97% of on-platform alerts (they trail their flow by 0-45 s), and
+the counts are identical for every N from 45 s to 120 s; 60 s sits inside that
+plateau with a margin. 67 further on-platform alerts trail a single key-matching flow
+by 155-393 s. They are delayed detections, not coincidences: none of the 2,436 alerts
+matched within 60 s has another key-matching flow 60-400 s away. A second plateau at
+N = 394-500 s would add them with no new ambiguity (2,476 matched / 27 ambiguous /
+1,251 unmatched, the unmatched being exactly the off-platform cloud-ids alerts). We
+declare the tighter N = 60 s and report those 67 as unmatched; at 3600 s ambiguity
+doubles.
 
 Each alert gets exactly one status:
 
@@ -32,7 +36,7 @@ import numpy as np
 import pandas as pd
 
 DEFAULT_N_S = 60
-SENSITIVITY_NS = (5, 10, 15, 30, 45, 60, 90, 120, 300, 600, 3600)
+SENSITIVITY_NS = (5, 10, 15, 30, 45, 60, 90, 120, 300, 450, 600, 3600)
 
 
 @dataclass

@@ -15,6 +15,17 @@ def test_duplicate_tenant_is_merged_into_canonical(ref):
     assert "INVALID_ENUM_REGION" in bad.quality_flags
 
 
+def test_tenant_merge_follows_a_chain_of_matching_rules():
+    # A~B share a contact, B~C share a normalised name: all three are one company
+    raw = pd.DataFrame({"tenant_id": ["tn_a", "tn_b", "tn_c"], "tenant_name": ["Alpha", "Nile Co", "NILE CO Ltd."],
+                        "industry": "x", "plan_tier": "x", "region": "eu-west-1",
+                        "onboarded_at": ["2025-01-01T00:00:00Z"] * 3,
+                        "is_active": "true", "security_contact": ["soc@nile.example", "soc@nile.example", None],
+                        "source_file": "tenants.csv", "source_line": [2, 3, 4]})
+    _, alias, _ = rf.clean_tenants(raw)
+    assert alias == {"tn_b": "tn_a", "tn_c": "tn_a"}
+
+
 def test_agent_versions_are_deduplicated_and_windowed(ref):
     a = ref.agents
     assert len(a) == 21 and a.agent_sk.is_unique

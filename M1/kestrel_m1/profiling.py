@@ -5,7 +5,6 @@ They only *describe* data; nothing here repairs or drops anything.
 
 from __future__ import annotations
 
-import fnmatch
 from dataclasses import dataclass, field
 
 import pandas as pd
@@ -92,12 +91,6 @@ def interval_overlaps(df: pd.DataFrame, key: str, start: str, end: str) -> pd.Da
                                 "overlap_from": max(a[start], b[start]),
                                 "overlap_to": min(a_end, b_end)})
     return pd.DataFrame(out)
-
-
-def host_matches(host: str, allowlist) -> bool:
-    """Wildcard-aware allowlist match (``*.public-data.example``)."""
-    host = (host or "").lower()
-    return any(fnmatch.fnmatchcase(host, pat.lower()) for pat in (allowlist or []))
 
 
 @dataclass

@@ -2,7 +2,8 @@
 
 Each source_system writes its own local offset (corp-siem +02:00, egress-proxy +03:00,
 cloud-ids -05:00). Profiling section 10 showed the offsets are honest: after
-conversion, alerts trail their flows by 0-45 s for every system. So the stated offset
+conversion, 97% of corp-siem and egress-proxy alerts trail their flow by 0-45 s.
+cloud-ids alerts are off-platform and have no flow to check against. The stated offset
 is applied as written, and kept in ``utc_offset`` for provenance.
 
 ``severity`` is the targeted system's opinion and is carried, never re-scored.

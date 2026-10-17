@@ -29,12 +29,10 @@ AUDIT_LOG_YEAR = 2026            # pack window 2026-01-31 .. 2026-03-31 (+ April
 # event_time formats seen in agent_activity, in the order they are tried
 ISO_RX = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})"
 EPOCH_MS_RX = r"\d{13}"
-EPOCH_S_RX = r"\d{10}"
 DMY_RX = r"\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}"
 
 FORMAT_ISO = "iso8601"
 FORMAT_EPOCH_MS = "epoch_ms"
-FORMAT_EPOCH_S = "epoch_s"
 FORMAT_DMY = "dmy_hms"
 FORMAT_UNKNOWN = "unknown"
 FORMAT_NULL = "null"
@@ -61,8 +59,7 @@ def classify_time_format(s: pd.Series) -> pd.Series:
     """Name the textual format of each raw timestamp (null-safe)."""
     text = s.astype("string")
     fmt = pd.Series(FORMAT_UNKNOWN, index=s.index, dtype="string")
-    for name, rx in [(FORMAT_ISO, ISO_RX), (FORMAT_EPOCH_MS, EPOCH_MS_RX),
-                     (FORMAT_EPOCH_S, EPOCH_S_RX), (FORMAT_DMY, DMY_RX)]:
+    for name, rx in [(FORMAT_ISO, ISO_RX), (FORMAT_EPOCH_MS, EPOCH_MS_RX), (FORMAT_DMY, DMY_RX)]:
         fmt[text.str.fullmatch(rx).fillna(False)] = name
     fmt[s.isna()] = FORMAT_NULL
     return fmt
@@ -73,7 +70,7 @@ def parse_activity_time(s: pd.Series) -> pd.DataFrame:
 
     Returns a frame with
     * ``ts``: UTC timestamp, NaT when the value cannot be read as a real instant
-    * ``fmt``: the detected format (iso8601, epoch_ms, epoch_s, dmy_hms, unknown, null)
+    * ``fmt``: the detected format (iso8601, epoch_ms, dmy_hms, unknown, null)
     * ``nonstandard``: True when a valid value was not in the canonical ISO form, which
       becomes the quality flag NONSTANDARD_TIMESTAMP_FORMAT (repaired, not rejected)
     """
@@ -86,10 +83,6 @@ def parse_activity_time(s: pd.Series) -> pd.DataFrame:
     m = fmt == FORMAT_EPOCH_MS
     if m.any():
         ts[m] = pd.to_datetime(s[m].astype("int64"), unit="ms", utc=True).astype(UTC_DTYPE)
-
-    m = fmt == FORMAT_EPOCH_S
-    if m.any():
-        ts[m] = pd.to_datetime(s[m].astype("int64"), unit="s", utc=True).astype(UTC_DTYPE)
 
     m = fmt == FORMAT_DMY
     if m.any():

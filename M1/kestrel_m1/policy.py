@@ -51,8 +51,6 @@ RISK_TOKENS = {
     "allowed_despite_policy": "sandbox ALLOWed a connection the effective policy forbids (fail-open)",
     "escalation_attempt": "setuid / ptrace / mount syscall attempted",
 }
-INJECTION_INDICATORS = {"instruction_override", "role_confusion", "exfil_request", "encoded_payload",
-                        "tool_coercion", "policy_probe"}
 ESCALATION_ACTIONS = {"setuid", "ptrace", "mount"}
 
 
@@ -182,7 +180,7 @@ def enrich_audit(au: pd.DataFrame, ref: Reference) -> pd.DataFrame:
     has_policy = df.policy_version_applied.notna()
     deny = df.decision == "DENY"
     sock = df.action == "socket_connect"
-    parts = df.target.where(sock).str.rsplit(":", n=1, expand=True)
+    parts = df.target.where(sock).str.rsplit(":", n=1, expand=True).reindex(columns=[0, 1])
     host = parts[0].where(~parts[0].str.fullmatch(IPV4_FULL_RX).fillna(False))
     port = pd.to_numeric(parts[1], errors="coerce").astype("Int64")
     egress_violation, rule = egress_rules(df, host, port, sock)
@@ -206,11 +204,10 @@ def enrich_audit(au: pd.DataFrame, ref: Reference) -> pd.DataFrame:
 
 def _policy_detail_cols(df: pd.DataFrame) -> list[str]:
     """Policy attributes used for the decision; the canonical table keeps only the version."""
-    keep = {"policy_version_applied"}
     cols = ["valid_from_utc", "valid_to_utc", "valid_to_declared_utc", "allowed_tools", "has_network_block",
             "network_egress_allowlist", "network_denied_ports", "network_max_egress_mb", "filesystem_read_scope",
             "filesystem_write_scope", "resources_max_runtime_s", "resources_max_memory_mb", "escalation_allowed"]
-    return [c for c in cols if c in df.columns and c not in keep]
+    return [c for c in cols if c in df.columns]
 
 
 # ---------------------------------------------------------------- cross-checks
@@ -222,7 +219,8 @@ def cross_check(activity: pd.DataFrame, flows: pd.DataFrame, audit: pd.DataFrame
       session and target
     * flows: our egress verdict vs. the audit socket_connect decision for the same
       session and target (host:port or ip:port)
-    * audit: the policy version the sandbox reported vs. our window-join version
+    * audit: the sandbox decision and reason vs. our violation verdict (fail-open lines
+      are ALLOW + violation), and the policy version it reported vs. our window join
     """
     out = {}
     tc = activity[activity.event_type == "tool.call"]
@@ -239,6 +237,8 @@ def cross_check(activity: pd.DataFrame, flows: pd.DataFrame, audit: pd.DataFrame
     out["flows"] = pd.crosstab([m.decision, m.reason], m.is_policy_violation.astype("string").fillna("<NA>"), margins=True)
     out["flows_verdict"] = pd.crosstab(flows.verdict, flows.is_policy_violation.astype("string").fillna("<NA>"), margins=True)
 
+    out["audit"] = pd.crosstab([audit.decision, audit.reason],
+                               audit.is_policy_violation.astype("string").fillna("<NA>"), margins=True)
     rep = audit.policy_version_reported.astype("string").fillna("-")
     out["audit_versions"] = pd.crosstab([audit.sandbox_profile_id.fillna("<none>"), rep],
                                         audit.policy_version_applied.astype("string").fillna("<NA>"))

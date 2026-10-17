@@ -17,9 +17,11 @@ def test_activity_time_formats_all_parse_to_the_same_utc_instant():
 
 
 def test_impossible_and_garbage_times_are_nat_not_guessed():
-    p = tu.parse_activity_time(pd.Series(["2026-02-30T10:00:00Z", "not-a-time", None, "31/02/2026 10:00:00"]))
+    # a 10-digit number could be epoch seconds, but the pack never uses that unit: rejected, not guessed
+    p = tu.parse_activity_time(pd.Series(["2026-02-30T10:00:00Z", "not-a-time", None, "31/02/2026 10:00:00",
+                                          "1770717600"]))
     assert p.ts.isna().all()
-    assert list(p.fmt) == ["iso8601", "unknown", "null", "dmy_hms"]
+    assert list(p.fmt) == ["iso8601", "unknown", "null", "dmy_hms", "unknown"]
     assert not p.nonstandard.any()
 
 
