@@ -153,6 +153,10 @@ def main(argv=None) -> int:
 
     # 9b lake + benchmark -------------------------------------------------------------------------
     if not args.skip_storage:
+        # free the stage tables first: the lake and benchmark only need canonical_activity
+        import gc
+        del tables, frames, curated, agree, verdicts
+        gc.collect()
         res = storage.run(canonical)
         log(f"lake: {res['layouts'].to_dict('records')[-1]['files']} files partitioned by event_date; "
             f"benchmark in output/storage", t0)

@@ -184,6 +184,13 @@ def benchmark(root: Path = LAKE, filesystem: str = "output directory") -> tuple[
     return bench, results
 
 
+def _buffered_copy(src, dst) -> None:
+    """Plain buffered copy. shutil's default uses os.sendfile, which fails with ENOMEM on a
+    Docker Desktop bind mount when the container is under memory pressure."""
+    with open(src, "rb") as fi, open(dst, "wb") as fo:
+        shutil.copyfileobj(fi, fo, 8 << 20)
+
+
 def benchmark_both() -> tuple[pd.DataFrame, dict]:
     """Benchmark on a copy on the process's own local disk (the storage layouts themselves) and
     on the output directory as written. In docker compose the output directory is a bind mount
@@ -192,7 +199,7 @@ def benchmark_both() -> tuple[pd.DataFrame, dict]:
     with tempfile.TemporaryDirectory() as tmp:
         local = Path(tmp)
         for sub in ("csv", "parquet_single", "canonical_activity"):
-            shutil.copytree(LAKE / sub, local / sub)
+            shutil.copytree(LAKE / sub, local / sub, copy_function=_buffered_copy)
         local_bench, results = benchmark(local, "local disk")
     out_bench, _ = benchmark(LAKE, "output directory (bind mount in docker)")
     return pd.concat([local_bench, out_bench], ignore_index=True), results
