@@ -1,0 +1,5 @@
+rule,label_policy,tp,fp,fn,tn,precision,recall,f1
+r1_injection_then_violation,confirmed_rogue vs benign,1305,4,30,2822,0.9969,0.9775,0.9871
+r1_injection_then_violation,confirmed_rogue+suspicious vs benign,1329,4,1882,2822,0.997,0.4139,0.585
+r2_injection_violation_drift,confirmed_rogue vs benign,1301,2,34,2824,0.9985,0.9745,0.9864
+r2_injection_violation_drift,confirmed_rogue+suspicious vs benign,1312,2,1899,2824,0.9985,0.4086,0.5799

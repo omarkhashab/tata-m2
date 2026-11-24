@@ -1,0 +1,10 @@
+source_file,records,contract_accepted,records_repaired,agrees_with_m1,MALFORMED_TIMESTAMP,INVALID_EVENT_TYPE,MISSING_REQUIRED_FIELD,INVALID_NUMERIC_RANGE,UNPARSEABLE_RECORD
+tenants.csv,6,6,1,6,0,0,0,0,0
+agents.csv,22,22,1,22,0,0,0,0,0
+tools.csv,18,18,0,18,0,0,0,0,0
+model_pricing.csv,5,5,0,5,0,0,0,0,0
+sandbox_policies.json,10,10,0,10,0,0,0,0,0
+agent_activity.parquet,937752,933105,160,937752,713,302,2070,1562,0
+network_flows.csv,42392,42392,0,42392,0,0,0,0,0
+sandbox_audit.log,184005,183481,0,184005,0,0,0,0,524
+siem_alerts.json,3754,3754,0,3754,0,0,0,0,0

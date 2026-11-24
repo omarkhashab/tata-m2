@@ -1,0 +1,15 @@
+{
+  "event_id": "ev_0933714",
+  "event_type": "llm.turn",
+  "session_id": "ss_100561",
+  "tenant_id": "tn_002",
+  "event_time": "2026-04-01T00:10:08.000Z",
+  "ingest_time": "2026-04-01T00:27:56.589Z",
+  "partition_stream_time": "2026-04-01T00:27:55.176Z",
+  "watermark": "2026-04-01T00:26:55.176Z",
+  "behind_watermark_s": 1007.176,
+  "reason": "LATE_BEYOND_WATERMARK",
+  "kafka_partition": 0,
+  "kafka_offset": 55,
+  "source_line": 3873
+}

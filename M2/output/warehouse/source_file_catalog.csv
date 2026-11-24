@@ -1,0 +1,12 @@
+source_file_id,file_name,path,format,format_detail,grain,size_bytes,content_sha256,row_count,used_in
+tenants.csv@9612fc32cc86,tenants.csv,M1/data/raw/tenants.csv,csv,csv,one tenant,677,9612fc32cc86d771e230dfbdb4258d843cb10ee7c9a1e8908ad25ca157f52796,6,M1+M2
+agents.csv@f366f7b09467,agents.csv,M1/data/raw/agents.csv,csv,csv,one agent version,2876,f366f7b0946782aa8dd60bdbf599e055632d88f4dd8b3d41a2e6196c49def574,22,M1+M2
+tools.csv@d5fac562e584,tools.csv,M1/data/raw/tools.csv,csv,csv,one tool version,1265,d5fac562e584fb0f553d29bb8c57c11f6f303851ededbccb5f7da983439a4aba,18,M1+M2
+model_pricing.csv@d44f7bf22c8a,model_pricing.csv,M1/data/raw/model_pricing.csv,csv,csv,one model price point,436,d44f7bf22c8a4c5ef244b955b33dc014720e261c66471a47194dbbdfe4828fcf,5,M1+M2
+sandbox_policies.json@f59f4ed3d7d1,sandbox_policies.json,M1/data/raw/sandbox_policies.json,json,nested_json,one policy version,7003,f59f4ed3d7d1b2d177f52b9a6b78db1cd2159d73b13b11643bf41b392349f626,10,M1+M2
+agent_activity.parquet@f7a67456b852,agent_activity.parquet,M1/data/raw/agent_activity.parquet,parquet,parquet,one activity event,33272064,f7a67456b8522d48c02ab85aaa4ff732b2a637cdc9291d0d2bc4ecb2317a0f2d,937752,M1+M2
+network_flows.csv@c070069013b0,network_flows.csv,M1/data/raw/network_flows.csv,csv,csv,one egress attempt,5595344,c070069013b0dcc5b6af4472608a983badcda1d55c88e427226bbccb5d547c81,42392,M1+M2
+sandbox_audit.log@fab639c76b71,sandbox_audit.log,M1/data/raw/sandbox_audit.log,syslog,syslog,one runtime decision (line),34698060,fab639c76b7111fe45c9e79472377f4900e0279315e48f547e5fc4f0fa3abead,184005,M1+M2
+siem_alerts.json@d9e2f1ae3109,siem_alerts.json,M1/data/raw/siem_alerts.json,json,nested_json,one alert,1646681,d9e2f1ae3109d83b975f51a25d1b72d8749bb1ab86195ca314d30f6e01a31692,3754,M1+M2
+stream_events.json@d8fdfc1fc723,stream_events.json,M1/data/raw/stream_events.json,json,json_array,one live activity event (array element),9779879,d8fdfc1fc723a45bb0669f83330c92a906da72f774710fcc209a6f32218e7e13,9575,M2
+incident_labels.csv@dec54266233c,incident_labels.csv,M1/data/raw/incident_labels.csv,csv,csv,one labelled session,771572,dec54266233c29bd5db5879116f711e2a04bceb64ec9bb0b3984edcfa074f430,6037,M2

@@ -1,0 +1,211 @@
+== Physical Plan ==
+* Sort (38)
++- Exchange (37)
+   +- * Project (36)
+      +- * HashAggregate (35)
+         +- Exchange (34)
+            +- * HashAggregate (33)
+               +- * Project (32)
+                  +- * SortMergeJoin Inner (31)
+                     :- * Sort (24)
+                     :  +- Exchange (23)
+                     :     +- * Project (22)
+                     :        +- * SortMergeJoin Inner (21)
+                     :           :- * Sort (15)
+                     :           :  +- Exchange (14)
+                     :           :     +- Union (13)
+                     :           :        :- * Project (4)
+                     :           :        :  +- * Filter (3)
+                     :           :        :     +- * ColumnarToRow (2)
+                     :           :        :        +- Scan parquet  (1)
+                     :           :        :- * Project (8)
+                     :           :        :  +- * Filter (7)
+                     :           :        :     +- * ColumnarToRow (6)
+                     :           :        :        +- Scan parquet  (5)
+                     :           :        +- * Project (12)
+                     :           :           +- * Filter (11)
+                     :           :              +- * ColumnarToRow (10)
+                     :           :                 +- Scan parquet  (9)
+                     :           +- * Sort (20)
+                     :              +- Exchange (19)
+                     :                 +- * Filter (18)
+                     :                    +- * ColumnarToRow (17)
+                     :                       +- Scan parquet  (16)
+                     +- * Sort (30)
+                        +- Exchange (29)
+                           +- * Project (28)
+                              +- * Filter (27)
+                                 +- * ColumnarToRow (26)
+                                    +- Scan parquet  (25)
+
+
+(1) Scan parquet 
+Output [4]: [agent_id#166, release_version#167, date_key#175L, is_policy_violation#189]
+Batched: true
+Location: InMemoryFileIndex [file:/app/M2/output/warehouse/parquet/fact_tool_call.parquet]
+PushedFilters: [IsNotNull(agent_id), IsNotNull(release_version), IsNotNull(date_key)]
+ReadSchema: struct<agent_id:string,release_version:string,date_key:bigint,is_policy_violation:boolean>
+
+(2) ColumnarToRow [codegen id : 1]
+Input [4]: [agent_id#166, release_version#167, date_key#175L, is_policy_violation#189]
+
+(3) Filter [codegen id : 1]
+Input [4]: [agent_id#166, release_version#167, date_key#175L, is_policy_violation#189]
+Condition : ((isnotnull(agent_id#166) AND isnotnull(release_version#167)) AND isnotnull(date_key#175L))
+
+(4) Project [codegen id : 1]
+Output [5]: [agent_id#166, release_version#167, date_key#175L, tool_call AS kind#336, is_policy_violation#189]
+Input [4]: [agent_id#166, release_version#167, date_key#175L, is_policy_violation#189]
+
+(5) Scan parquet 
+Output [4]: [agent_id#198, release_version#199, date_key#204L, is_policy_violation#217]
+Batched: true
+Location: InMemoryFileIndex [file:/app/M2/output/warehouse/parquet/fact_network_flow.parquet]
+PushedFilters: [IsNotNull(agent_id), IsNotNull(release_version), IsNotNull(date_key)]
+ReadSchema: struct<agent_id:string,release_version:string,date_key:bigint,is_policy_violation:boolean>
+
+(6) ColumnarToRow [codegen id : 2]
+Input [4]: [agent_id#198, release_version#199, date_key#204L, is_policy_violation#217]
+
+(7) Filter [codegen id : 2]
+Input [4]: [agent_id#198, release_version#199, date_key#204L, is_policy_violation#217]
+Condition : ((isnotnull(agent_id#198) AND isnotnull(release_version#199)) AND isnotnull(date_key#204L))
+
+(8) Project [codegen id : 2]
+Output [5]: [agent_id#198, release_version#199, date_key#204L, network_flow AS kind#339, is_policy_violation#217]
+Input [4]: [agent_id#198, release_version#199, date_key#204L, is_policy_violation#217]
+
+(9) Scan parquet 
+Output [3]: [agent_id#81, release_version#82, date_key#91L]
+Batched: true
+Location: InMemoryFileIndex [file:/app/M2/output/warehouse/parquet/fact_session.parquet]
+PushedFilters: [IsNotNull(agent_id), IsNotNull(release_version), IsNotNull(date_key)]
+ReadSchema: struct<agent_id:string,release_version:string,date_key:bigint>
+
+(10) ColumnarToRow [codegen id : 3]
+Input [3]: [agent_id#81, release_version#82, date_key#91L]
+
+(11) Filter [codegen id : 3]
+Input [3]: [agent_id#81, release_version#82, date_key#91L]
+Condition : ((isnotnull(agent_id#81) AND isnotnull(release_version#82)) AND isnotnull(date_key#91L))
+
+(12) Project [codegen id : 3]
+Output [5]: [agent_id#81, release_version#82, date_key#91L, session AS kind#342, null AS is_policy_violation#343]
+Input [3]: [agent_id#81, release_version#82, date_key#91L]
+
+(13) Union
+
+(14) Exchange
+Input [5]: [agent_id#166, release_version#167, date_key#175L, kind#336, is_policy_violation#189]
+Arguments: hashpartitioning(agent_id#166, release_version#167, 16), ENSURE_REQUIREMENTS, [plan_id=202]
+
+(15) Sort [codegen id : 4]
+Input [5]: [agent_id#166, release_version#167, date_key#175L, kind#336, is_policy_violation#189]
+Arguments: [agent_id#166 ASC NULLS FIRST, release_version#167 ASC NULLS FIRST], false, 0
+
+(16) Scan parquet 
+Output [4]: [agent_id#13, release_version#14, agent_name#17, agent_type#18]
+Batched: true
+Location: InMemoryFileIndex [file:/app/M2/output/warehouse/parquet/dim_agent.parquet]
+PushedFilters: [IsNotNull(agent_id), IsNotNull(release_version)]
+ReadSchema: struct<agent_id:string,release_version:string,agent_name:string,agent_type:string>
+
+(17) ColumnarToRow [codegen id : 5]
+Input [4]: [agent_id#13, release_version#14, agent_name#17, agent_type#18]
+
+(18) Filter [codegen id : 5]
+Input [4]: [agent_id#13, release_version#14, agent_name#17, agent_type#18]
+Condition : (isnotnull(agent_id#13) AND isnotnull(release_version#14))
+
+(19) Exchange
+Input [4]: [agent_id#13, release_version#14, agent_name#17, agent_type#18]
+Arguments: hashpartitioning(agent_id#13, release_version#14, 16), ENSURE_REQUIREMENTS, [plan_id=211]
+
+(20) Sort [codegen id : 6]
+Input [4]: [agent_id#13, release_version#14, agent_name#17, agent_type#18]
+Arguments: [agent_id#13 ASC NULLS FIRST, release_version#14 ASC NULLS FIRST], false, 0
+
+(21) SortMergeJoin [codegen id : 7]
+Left keys [2]: [agent_id#166, release_version#167]
+Right keys [2]: [agent_id#13, release_version#14]
+Join type: Inner
+Join condition: None
+
+(22) Project [codegen id : 7]
+Output [7]: [agent_id#166, release_version#167, date_key#175L, kind#336, is_policy_violation#189, agent_name#17, agent_type#18]
+Input [9]: [agent_id#166, release_version#167, date_key#175L, kind#336, is_policy_violation#189, agent_id#13, release_version#14, agent_name#17, agent_type#18]
+
+(23) Exchange
+Input [7]: [agent_id#166, release_version#167, date_key#175L, kind#336, is_policy_violation#189, agent_name#17, agent_type#18]
+Arguments: hashpartitioning(date_key#175L, 16), ENSURE_REQUIREMENTS, [plan_id=219]
+
+(24) Sort [codegen id : 8]
+Input [7]: [agent_id#166, release_version#167, date_key#175L, kind#336, is_policy_violation#189, agent_name#17, agent_type#18]
+Arguments: [date_key#175L ASC NULLS FIRST], false, 0
+
+(25) Scan parquet 
+Output [2]: [date_key#61L, full_date#62]
+Batched: true
+Location: InMemoryFileIndex [file:/app/M2/output/warehouse/parquet/dim_date.parquet]
+PushedFilters: [IsNotNull(date_key)]
+ReadSchema: struct<date_key:bigint,full_date:timestamp_ntz>
+
+(26) ColumnarToRow [codegen id : 9]
+Input [2]: [date_key#61L, full_date#62]
+
+(27) Filter [codegen id : 9]
+Input [2]: [date_key#61L, full_date#62]
+Condition : isnotnull(date_key#61L)
+
+(28) Project [codegen id : 9]
+Output [2]: [date_key#61L, cast(full_date#62 as date) AS day#334]
+Input [2]: [date_key#61L, full_date#62]
+
+(29) Exchange
+Input [2]: [date_key#61L, day#334]
+Arguments: hashpartitioning(date_key#61L, 16), ENSURE_REQUIREMENTS, [plan_id=229]
+
+(30) Sort [codegen id : 10]
+Input [2]: [date_key#61L, day#334]
+Arguments: [date_key#61L ASC NULLS FIRST], false, 0
+
+(31) SortMergeJoin [codegen id : 11]
+Left keys [1]: [date_key#175L]
+Right keys [1]: [date_key#61L]
+Join type: Inner
+Join condition: None
+
+(32) Project [codegen id : 11]
+Output [7]: [agent_id#166, release_version#167, kind#336, is_policy_violation#189, agent_name#17, agent_type#18, day#334]
+Input [9]: [agent_id#166, release_version#167, date_key#175L, kind#336, is_policy_violation#189, agent_name#17, agent_type#18, date_key#61L, day#334]
+
+(33) HashAggregate [codegen id : 11]
+Input [7]: [agent_id#166, release_version#167, kind#336, is_policy_violation#189, agent_name#17, agent_type#18, day#334]
+Keys [5]: [day#334, agent_id#166, release_version#167, agent_name#17, agent_type#18]
+Functions [6]: [partial_sum(CASE WHEN (kind#336 = session) THEN 1 ELSE 0 END), partial_sum(CASE WHEN (kind#336 = tool_call) THEN 1 ELSE 0 END), partial_sum(CASE WHEN ((kind#336 = tool_call) AND isnotnull(is_policy_violation#189)) THEN 1 ELSE 0 END), partial_sum(CASE WHEN ((kind#336 = tool_call) AND coalesce(is_policy_violation#189, false)) THEN 1 ELSE 0 END), partial_sum(CASE WHEN ((kind#336 = network_flow) AND isnotnull(is_policy_violation#189)) THEN 1 ELSE 0 END), partial_sum(CASE WHEN ((kind#336 = network_flow) AND coalesce(is_policy_violation#189, false)) THEN 1 ELSE 0 END)]
+Aggregate Attributes [6]: [sum#370L, sum#371L, sum#372L, sum#373L, sum#374L, sum#375L]
+Results [11]: [day#334, agent_id#166, release_version#167, agent_name#17, agent_type#18, sum#376L, sum#377L, sum#378L, sum#379L, sum#380L, sum#381L]
+
+(34) Exchange
+Input [11]: [day#334, agent_id#166, release_version#167, agent_name#17, agent_type#18, sum#376L, sum#377L, sum#378L, sum#379L, sum#380L, sum#381L]
+Arguments: hashpartitioning(day#334, agent_id#166, release_version#167, agent_name#17, agent_type#18, 16), ENSURE_REQUIREMENTS, [plan_id=238]
+
+(35) HashAggregate [codegen id : 12]
+Input [11]: [day#334, agent_id#166, release_version#167, agent_name#17, agent_type#18, sum#376L, sum#377L, sum#378L, sum#379L, sum#380L, sum#381L]
+Keys [5]: [day#334, agent_id#166, release_version#167, agent_name#17, agent_type#18]
+Functions [6]: [sum(CASE WHEN (kind#336 = session) THEN 1 ELSE 0 END), sum(CASE WHEN (kind#336 = tool_call) THEN 1 ELSE 0 END), sum(CASE WHEN ((kind#336 = tool_call) AND isnotnull(is_policy_violation#189)) THEN 1 ELSE 0 END), sum(CASE WHEN ((kind#336 = tool_call) AND coalesce(is_policy_violation#189, false)) THEN 1 ELSE 0 END), sum(CASE WHEN ((kind#336 = network_flow) AND isnotnull(is_policy_violation#189)) THEN 1 ELSE 0 END), sum(CASE WHEN ((kind#336 = network_flow) AND coalesce(is_policy_violation#189, false)) THEN 1 ELSE 0 END)]
+Aggregate Attributes [6]: [sum(CASE WHEN (kind#336 = session) THEN 1 ELSE 0 END)#361L, sum(CASE WHEN (kind#336 = tool_call) THEN 1 ELSE 0 END)#362L, sum(CASE WHEN ((kind#336 = tool_call) AND isnotnull(is_policy_violation#189)) THEN 1 ELSE 0 END)#363L, sum(CASE WHEN ((kind#336 = tool_call) AND coalesce(is_policy_violation#189, false)) THEN 1 ELSE 0 END)#364L, sum(CASE WHEN ((kind#336 = network_flow) AND isnotnull(is_policy_violation#189)) THEN 1 ELSE 0 END)#365L, sum(CASE WHEN ((kind#336 = network_flow) AND coalesce(is_policy_violation#189, false)) THEN 1 ELSE 0 END)#366L]
+Results [11]: [day#334, agent_id#166, release_version#167, agent_name#17, agent_type#18, sum(CASE WHEN (kind#336 = session) THEN 1 ELSE 0 END)#361L AS sessions_started#345L, sum(CASE WHEN (kind#336 = tool_call) THEN 1 ELSE 0 END)#362L AS tool_calls#346L, sum(CASE WHEN ((kind#336 = tool_call) AND isnotnull(is_policy_violation#189)) THEN 1 ELSE 0 END)#363L AS tool_calls_judged#347L, sum(CASE WHEN ((kind#336 = tool_call) AND coalesce(is_policy_violation#189, false)) THEN 1 ELSE 0 END)#364L AS tool_violations#348L, sum(CASE WHEN ((kind#336 = network_flow) AND isnotnull(is_policy_violation#189)) THEN 1 ELSE 0 END)#365L AS flows_judged#349L, sum(CASE WHEN ((kind#336 = network_flow) AND coalesce(is_policy_violation#189, false)) THEN 1 ELSE 0 END)#366L AS egress_violations#350L]
+
+(36) Project [codegen id : 12]
+Output [14]: [day#334, agent_id#166, release_version#167, agent_name#17, agent_type#18, sessions_started#345L, tool_calls#346L, tool_calls_judged#347L, tool_violations#348L, flows_judged#349L, egress_violations#350L, round((cast(tool_violations#348L as double) / cast(tool_calls_judged#347L as double)), 6) AS tool_violation_rate#367, round((cast(egress_violations#350L as double) / cast(flows_judged#349L as double)), 6) AS egress_violation_rate#368, round((cast((tool_violations#348L + egress_violations#350L) as double) / cast((tool_calls_judged#347L + flows_judged#349L) as double)), 6) AS policy_violation_rate#369]
+Input [11]: [day#334, agent_id#166, release_version#167, agent_name#17, agent_type#18, sessions_started#345L, tool_calls#346L, tool_calls_judged#347L, tool_violations#348L, flows_judged#349L, egress_violations#350L]
+
+(37) Exchange
+Input [14]: [day#334, agent_id#166, release_version#167, agent_name#17, agent_type#18, sessions_started#345L, tool_calls#346L, tool_calls_judged#347L, tool_violations#348L, flows_judged#349L, egress_violations#350L, tool_violation_rate#367, egress_violation_rate#368, policy_violation_rate#369]
+Arguments: rangepartitioning(day#334 ASC NULLS FIRST, agent_id#166 ASC NULLS FIRST, release_version#167 ASC NULLS FIRST, 16), ENSURE_REQUIREMENTS, [plan_id=243]
+
+(38) Sort [codegen id : 13]
+Input [14]: [day#334, agent_id#166, release_version#167, agent_name#17, agent_type#18, sessions_started#345L, tool_calls#346L, tool_calls_judged#347L, tool_violations#348L, flows_judged#349L, egress_violations#350L, tool_violation_rate#367, egress_violation_rate#368, policy_violation_rate#369]
+Arguments: [day#334 ASC NULLS FIRST, agent_id#166 ASC NULLS FIRST, release_version#167 ASC NULLS FIRST], true, 0
+

@@ -1,0 +1,137 @@
+name: kestrel-m2
+
+# Kestrel Milestone 2. `docker compose up --build` runs, in dependency order:
+#   warehouse -> (producer -> consumer -> windows) and warehouse -> spark
+# The consumer starts only after the producer has finished (the late-start test).
+
+x-app: &app
+  build:
+    context: ..                     # repo root: the image needs M1/kestrel_m1 and M1/data/raw too
+    dockerfile: M2/Dockerfile
+  image: kestrel-m2:latest
+  environment: &app-env
+    KESTREL_DB_URL: postgresql+psycopg2://${POSTGRES_USER:-kestrel}:${POSTGRES_PASSWORD:-kestrel}@postgres:5432/${POSTGRES_DB:-kestrel}
+    KESTREL_KAFKA_BOOTSTRAP: kafka:29092
+  volumes:
+    - ./output:/app/M2/output
+  restart: "no"
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-kestrel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kestrel}
+      POSTGRES_DB: ${POSTGRES_DB:-kestrel}
+    command: ["postgres", "-c", "shared_buffers=512MB", "-c", "work_mem=64MB", "-c", "max_wal_size=4GB"]
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  adminer:
+    image: adminer:4
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"      # topics are created explicitly (Appendix B layout)
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8081:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: kestrel
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  # one-shot: catalogue -> Pydantic gate -> M1 cleaning -> Pandera zones -> star schema
+  #           -> idempotent load (+ run-twice check) -> aggregates -> partitioned Parquet + benchmark
+  warehouse:
+    <<: *app
+    command: ["python", "-m", "kestrel_m2.build", "--check-idempotency"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # one-shot: creates the three topics, replays stream_events.json at a fixed pace, ends with EOS
+  producer:
+    <<: *app
+    command: ["python", "-m", "kestrel_m2.stream.producer", "--rate", "400"]
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  # one-shot: starts only after the producer has exited (late-start test), stops at EOS
+  consumer:
+    <<: *app
+    command: ["python", "-m", "kestrel_m2.stream.consumer"]
+    depends_on:
+      producer:
+        condition: service_completed_successfully
+      warehouse:
+        condition: service_completed_successfully
+
+  # bonus: tumbling one-minute windows per tenant from the curated topic
+  windows:
+    <<: *app
+    command: ["python", "-m", "kestrel_m2.stream.windows"]
+    depends_on:
+      consumer:
+        condition: service_completed_successfully
+
+  # one-shot: the ten Spark analyses, explain(), skew response, eleven metrics, detection scoring
+  spark:
+    <<: *app
+    command: ["python", "-m", "kestrel_m2.spark.analytics"]
+    environment:
+      <<: *app-env
+      SPARK_DRIVER_MEMORY: 3g
+    depends_on:
+      warehouse:
+        condition: service_completed_successfully
+      consumer:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:

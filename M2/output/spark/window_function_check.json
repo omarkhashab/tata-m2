@@ -1,0 +1,12 @@
+{
+  "rows_window": 24634,
+  "rows_self_join": 24634,
+  "in_window_not_self_join": 0,
+  "in_self_join_not_window": 0,
+  "identical": true,
+  "window_plan_operators": [
+    "+- Window [min(_w0#1514) windowspecdefinition(session_id#164, specifiedwindowframe(RowFrame, unboundedpreceding$(), unboundedfollowing$())) AS _we0#1515, count(1) windowspecdefinition(session_id#164, specifiedwindowframe(RowFrame, unboundedpreceding$(), unboundedfollowing$())) AS chain_length#1516L], [session_id#164]",
+    "+- Window [row_number() windowspecdefinition(session_id#164, t#1494 ASC NULLS FIRST, source_id#1493 ASC NULLS FIRST, specifiedwindowframe(RowFrame, unboundedpreceding$(), currentrow$())) AS step#1508, lag(t#1494, -1, null) windowspecdefinition(session_id#164, t#1494 ASC NULLS FIRST, source_id#1493 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -1, -1)) AS prev_t#1510], [session_id#164], [t#1494 ASC NULLS FIRST, source_id#1493 ASC NULLS FIRST]",
+    "+- Window [min(_w0#1514) windowspecdefinition(session_id#164, specifiedwindowframe(RowFrame, unboundedpreceding$(), unboundedfollowing$())) AS _we0#1515, count(1) windowspecdefinition(session_id#164, specifiedwindowframe(RowFrame, unboundedpreceding$(), unboundedfollowing$())) AS chain_length#1516L], [session_id#164]"
+  ]
+}

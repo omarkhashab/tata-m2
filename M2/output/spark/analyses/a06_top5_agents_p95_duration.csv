@@ -1,0 +1,6 @@
+agent_id,agent_name,agent_type,terminal_sessions,p50_duration_s,p95_duration_s,max_duration_s
+ag_031,store-ops-agent,ops,4076,22.829,48.115,87.888
+ag_004,ops-runbook-agent,ops,38943,22.579,46.065,109.492
+ag_012,fraud-query-agent,analytics,3089,15.59,34.908,78.121
+ag_021,literature-research-agent,research,3820,15.908,34.518,75.36
+ag_019,claims-analytics-agent,analytics,6063,15.392,34.326,82.858

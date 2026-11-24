@@ -1,0 +1,12 @@
+# context is the repository root
+.git
+.venv
+.cache
+descriptions
+**/__pycache__
+**/.pytest_cache
+**/.ipynb_checkpoints
+M1/notebooks
+M1/output/curated
+M1/output/profiling
+M2/output

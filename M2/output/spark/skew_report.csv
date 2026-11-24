@@ -1,0 +1,24 @@
+section,table,key,rank,value,rows,share_pct
+concentration,fact_tool_call,agent_id+release_version,1.0,ag_004@3.0.2,109559.0,34.31
+concentration,fact_tool_call,agent_id+release_version,2.0,ag_004@3.0.1,52903.0,16.57
+concentration,fact_tool_call,agent_id+release_version,3.0,ag_001@1.0.0,17662.0,5.53
+concentration,fact_tool_call,tenant_id,1.0,tn_001,204695.0,64.1
+concentration,fact_tool_call,tenant_id,2.0,tn_003,38697.0,12.12
+concentration,fact_tool_call,tenant_id,3.0,tn_002,38178.0,11.95
+concentration,fact_prompt_turn,agent_id+release_version,1.0,ag_004@3.0.2,132944.0,32.63
+concentration,fact_prompt_turn,agent_id+release_version,2.0,ag_004@3.0.1,64336.0,15.79
+concentration,fact_prompt_turn,agent_id+release_version,3.0,ag_001@1.0.0,23958.0,5.88
+concentration,fact_prompt_turn,tenant_id,1.0,tn_001,254663.0,62.5
+concentration,fact_prompt_turn,tenant_id,2.0,tn_003,52298.0,12.84
+concentration,fact_prompt_turn,tenant_id,3.0,tn_002,52102.0,12.79
+concentration,fact_session,agent_id+release_version,1.0,ag_004@3.0.2,26791.0,26.79
+concentration,fact_session,agent_id+release_version,2.0,ag_004@3.0.1,12968.0,12.97
+concentration,fact_session,agent_id+release_version,3.0,ag_001@1.0.0,6873.0,6.87
+concentration,fact_session,tenant_id,1.0,tn_001,56762.0,56.76
+concentration,fact_session,tenant_id,2.0,tn_002,15552.0,15.55
+concentration,fact_session,tenant_id,3.0,tn_003,15417.0,15.42
+"reducer rows (fact_tool_call, 16 shuffle partitions)",fact_tool_call,"hash(agent_id, release_version)",,"max 109,559 / median 14,059 / min 0; empty 3",109559.0,34.31
+"reducer rows (fact_tool_call, 16 shuffle partitions)",fact_tool_call,"hash(agent_id, release_version, salt) salt=8",,"max 38,502 / median 18,905 / min 6,188; empty 0",38502.0,12.06
+"a01 wall time (local[*], AQE off)",a01,baseline: shuffle facts on agent key,,6.81 s,,
+"a01 wall time (local[*], AQE off)",a01,skew response: broadcast dims,,0.98 s,,
+a01 result check,a01,baseline == broadcast == salted join,,True,805.0,

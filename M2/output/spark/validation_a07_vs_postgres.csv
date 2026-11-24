@@ -1,0 +1,5 @@
+tool_category,attempts_spark,executed,failed_spark,denied_spark,failure_rate_spark,denial_rate_spark,policy_violation_rate,tools,attempts_postgres,failed_postgres,denied_postgres,failure_rate_postgres,denial_rate_postgres,equal
+messaging,11599,11599,867,0,0.074748,0.0,0.0,1,11599,867,0,0.074748,0.000000,True
+filesystem,49174,48118,3384,1056,0.070327,0.021475,0.022618,2,49174,3384,1056,0.070327,0.021475,True
+code_exec,5676,5494,381,182,0.069348,0.032065,0.032065,1,5676,381,182,0.069348,0.032065,True
+database,84751,84615,5839,136,0.069007,0.001605,0.001827,1,84751,5839,136,0.069007,0.001605,True

@@ -1,0 +1,60 @@
+{
+  "group_id": "kestrel-tata",
+  "auto_offset_reset": "earliest",
+  "restored_log_rows": 0,
+  "eos_seen_on_partitions": [
+    0,
+    1,
+    2
+  ],
+  "first_offset_read": {
+    "0": 0,
+    "1": 0,
+    "2": 0
+  },
+  "committed_offsets": {
+    "0": 3000,
+    "1": 3521,
+    "2": 3056
+  },
+  "messages_read": 9577,
+  "data_messages": 9574,
+  "control_messages": 3,
+  "accepted": 8827,
+  "rejected": 747,
+  "rejected_by_reason": {
+    "DUPLICATE_EVENT_ID": 66,
+    "UNKNOWN_AGENT_ID": 68,
+    "UNKNOWN_TENANT_ID": 68,
+    "MALFORMED_TIMESTAMP": 33,
+    "ORPHAN_EVENT": 98,
+    "INVALID_EVENT_TYPE": 68,
+    "MISSING_REQUIRED_FIELD": 66,
+    "INVALID_NUMERIC_RANGE": 68,
+    "LATE_BEYOND_WATERMARK": 101,
+    "UNPARSEABLE_RECORD": 68,
+    "SCHEMA_VIOLATION": 43
+  },
+  "held_for_session_start": 133,
+  "released_after_start": 35,
+  "orphan_by_watermark": 33,
+  "orphan_at_eos": 65,
+  "redelivered_skipped": 0,
+  "commits": 20,
+  "elapsed_s": 14.8,
+  "watermark_example": {
+    "event_id": "ev_0933714",
+    "event_type": "llm.turn",
+    "session_id": "ss_100561",
+    "tenant_id": "tn_002",
+    "event_time": "2026-04-01T00:10:08.000Z",
+    "ingest_time": "2026-04-01T00:27:56.589Z",
+    "partition_stream_time": "2026-04-01T00:27:55.176Z",
+    "watermark": "2026-04-01T00:26:55.176Z",
+    "behind_watermark_s": 1007.176,
+    "reason": "LATE_BEYOND_WATERMARK",
+    "kafka_partition": 0,
+    "kafka_offset": 55,
+    "source_line": 3873
+  }
+}

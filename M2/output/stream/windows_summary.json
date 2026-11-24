@@ -1,0 +1,14 @@
+{
+  "records": 8827,
+  "windows": 30,
+  "rows_written": 30,
+  "eos_partitions": [
+    0,
+    1,
+    2
+  ],
+  "late_updates": 0,
+  "late_examples": [],
+  "denied_tool_calls": 30,
+  "elapsed_s": 2.3
+}

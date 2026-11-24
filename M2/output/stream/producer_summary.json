@@ -1,0 +1,15 @@
+{
+  "messages": 9574,
+  "eos_records": 3,
+  "rate_target_per_s": 400.0,
+  "elapsed_s": 24.0,
+  "rate_achieved_per_s": 399.6,
+  "per_partition": {
+    "0": 2999,
+    "1": 3520,
+    "2": 3055
+  },
+  "stated_goal_fingerprinted": 4215,
+  "non_object_elements": 68,
+  "text_fragments_removed": 0
+}

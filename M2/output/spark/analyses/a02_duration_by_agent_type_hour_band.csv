@@ -1,0 +1,21 @@
+agent_type,hour_band,terminal_sessions,p50_duration_s,p95_duration_s,mean_s
+analytics,00-06 night,2235,15.537,36.301,16.99
+analytics,06-12 morning,6057,15.28,33.991,16.607
+analytics,12-18 afternoon,6781,15.501,33.346,16.811
+analytics,18-24 evening,3021,15.44,32.681,16.662
+coding,00-06 night,556,15.785,35.382,16.934
+coding,06-12 morning,1448,15.792,33.791,17.178
+coding,12-18 afternoon,1649,15.788,34.11,17.085
+coding,18-24 evening,741,16.124,31.437,17.119
+ops,00-06 night,5390,22.632,45.168,24.197
+ops,06-12 morning,14434,22.533,46.794,24.195
+ops,12-18 afternoon,16071,22.602,45.953,24.217
+ops,18-24 evening,7124,22.69,46.187,24.377
+research,00-06 night,1878,16.073,35.099,17.296
+research,06-12 morning,5097,15.785,32.697,16.875
+research,12-18 afternoon,5601,15.716,32.905,16.877
+research,18-24 evening,2498,15.514,34.408,16.92
+support,00-06 night,2182,13.469,27.88,14.431
+support,06-12 morning,5795,13.325,28.943,14.536
+support,12-18 afternoon,6514,13.385,30.306,14.692
+support,18-24 evening,2880,13.346,28.658,14.465

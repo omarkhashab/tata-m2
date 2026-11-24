@@ -1,0 +1,6 @@
+agent_id,sessions,p95_spark_approx,p95_numpy_exact,abs_diff_s,approx_value_rank,within_rank_error
+ag_031,4076,48.115,48.104,0.011,0.9502,True
+ag_004,38943,46.065,46.079,0.014,0.9499,True
+ag_012,3089,34.908,34.908,0.0,0.95015,True
+ag_021,3820,34.518,34.523,0.005,0.95,True
+ag_019,6063,34.326,34.336,0.01,0.94986,True

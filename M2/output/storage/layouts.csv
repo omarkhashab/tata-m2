@@ -1,0 +1,4 @@
+layout,path,files,size_mb,write_s,rows
+csv,output/lake/csv/canonical_activity.csv,1,239.44,45.26,1154314
+parquet_single,output/lake/parquet_single/canonical_activity.parquet,1,23.56,2.8,1154314
+parquet_partitioned_by_event_date,output/lake/canonical_activity,60,32.99,1.74,1154314
